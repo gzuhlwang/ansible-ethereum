@@ -6,7 +6,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/hcoin
-ExecStart=/usr/bin/geth --identity "{{node_name}}" --rpc --rpcport "{{rpc_port}}" --rpccorsdomain "{{rpc_cross_domain}}" --datadir "{{data_dir}}" --port "{{network_port}}" --nodiscover --rpcapi "db,eth,net,web3" --networkid {{network_id}} --nat "{{nat}}" --maxpeers 0
+ExecStart=/usr/bin/geth --identity "{{node_name}}" --rpc --rpcport "{{rpc_port}}" --rpcaddr "{{rpc_address}}" --rpccorsdomain "{{rpc_cross_domain}}" --datadir "{{data_dir}}" --port "{{network_port}}" --nodiscover --rpcapi "db,eth,net,web3" --networkid {{network_id}} --nat "{{nat}}" --maxpeers 0
 
 [Install]
 WantedBy=multi-user.target

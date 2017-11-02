@@ -10,6 +10,7 @@
     nat: "any"
     initial_balance: 5000000000000000000000 #   5000 eth
     chain_id: 3131
+    rpc_address: "0.0.0.0"
   tasks:
     - name: Install common properties package 
       apt:

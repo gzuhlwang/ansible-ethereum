@@ -1,0 +1,23 @@
+---
+- name: Create password file
+  vars:
+    account_password: "{{ lookup('file', 'files/password.txt') }}"
+  lineinfile:
+    path: "/tmp/.eth_pwd"
+    state: present
+    line: "{{account_password}}"
+    create: true
+- name: Get accounts count
+  shell: geth --datadir /opt/hcoin/data/ account list | wc -l
+  register: account_ls
+- name: Create first account if does not exists
+  shell: geth --datadir "{{data_dir}}" --password "/tmp/.eth_pwd" account new | awk '{print $2}' | sed 's/^[^{]*{\([^{}]*\)}.*/\1/'
+  register: account_new
+  when: account_ls.stdout == '0'
+- name: Make sure that password file is removed
+  file:
+    path: "/tmp/.eth_pwd"
+    state: absent
+- name: Propagate variables
+  set_fact:
+    account_address: "{{account_new.stdout}}"

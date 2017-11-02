@@ -1,0 +1,56 @@
+- hosts: ethereum-node
+  become: true
+  vars:
+    hcoin_dir: /opt/hcoin
+    rpc_port: 8000
+    rpc_cross_domain: "*"
+    network_port: 30303
+    network_id: 1313
+    node_name: "hcoin-ethereum-node"
+    nat: "any"
+    initial_balance: 5000000000000000000000 #   5000 eth
+    chain_id: 3131
+  tasks:
+    - name: Install common properties package 
+      apt:
+        name: software-properties-common
+        update_cache: yes
+        state: present
+    - name: Add ethereum repository
+      apt_repository:
+        repo: ppa:ethereum/ethereum
+        state: present
+    - name: Install ethereum
+      apt:
+        name: ethereum
+        update_cache: yes
+        state: present
+    - name: Prepare data directory for ethereum
+      file: path={{hcoin_dir}}/data state=directory
+    - import_tasks: initial_account.yml
+      vars:
+        data_dir: "{{hcoin_dir}}/data"
+    - name: Create custom genesis file
+      vars:
+        address: "{{account_address}}"
+      template:
+        src: templates/genesis-custom.json.j2
+        dest: "{{hcoin_dir}}/genesis-custom.json"
+      when: account_address is defined
+    - name: Initialize ethereum database
+      shell: geth --datadir "{{hcoin_dir}}/data" init "{{hcoin_dir}}/genesis-custom.json"
+    - name: Create ethereum client service
+      vars:
+        data_dir: "{{hcoin_dir}}/data"
+      template:
+        src: templates/ethereum-daemon.service.j2
+        dest: /etc/systemd/system/ethereum-daemon.service
+    - name: Make sure ethereum-daemon service is running
+      systemd: state=started name=ethereum-daemon
+    - name: Open RPC port
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{rpc_port}}"
+        jump: ACCEPT
+        ctstate: NEW
